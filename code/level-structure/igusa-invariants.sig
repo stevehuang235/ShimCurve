@@ -1,4 +1,4 @@
-177,0
+178,0
 S,PQMIgusaClebschDisc6,"Given j from Baba-Granaths discriminant 6 family, create the Igusa-Clebsch invariants of the curve associated to j",0,1,0,0,0,0,0,0,0,267,,82,-38,-38,-38,-38,-38
 S,PQMIgusaClebschDisc10,"Given j from Baba-Granath's discriminant 10 family, create the Igusa-Clebsch invariants of the curve associated to j",0,1,0,0,0,0,0,0,0,267,,82,-38,-38,-38,-38,-38
 S,PQMIgusaClebschDisc15,"Given j from Baba-Granaths discriminant 15 family, create the Igusa-Clebsch invariants of the curve associated to j",0,1,0,0,0,0,0,0,0,267,,82,-38,-38,-38,-38,-38

@@ -1,4 +1,4 @@
-177,0
+178,0
 S,GetG1plus,Returns G1plus given G,0,4,0,0,0,0,0,0,0,178,,0,0,148,,0,0,18,,0,0,19,,178,-38,-38,-38,-38,-38
 S,GetKernelAsSubgroup,"Returns the kernel of the semidirect to normalizer map, as a subgroup of G",0,4,0,0,0,0,0,0,0,178,,0,0,148,,0,0,18,,0,0,19,,178,-38,-38,-38,-38,-38
 S,EnumerateGerbiestSurjectiveH,"return all of the enhanced subgroups which contain the entire kernel (maximal size of gerbe, hence gerbisest), and having surjective reduced norm, in a list with each one being a record (rethink it)",0,6,0,0,0,0,0,0,0,178,,0,0,141,,0,0,178,,0,0,178,,0,0,175,,0,0,AlgQuatOrdRes,,82,82,82,82,-38,-38

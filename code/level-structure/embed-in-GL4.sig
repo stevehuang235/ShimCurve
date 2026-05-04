@@ -1,4 +1,4 @@
-177,0
+178,0
 S,ElementToAutomorphismModN,a in B^x becomes an automorphism of (O/N)^x by considering the map a |-> (x|-> a^-1xa) as long as a in N_B^x(O). We apply this to (O/N)^x as a permutation group,0,2,0,0,0,0,0,0,0,AlgQuatOrdRes,,0,0,18,,33,-38,-38,-38,-38,-38
 S,ElementToAutomorphismModN,a in B^x becomes an automorphism of (O/N)^x by considering the map a |-> (x|-> a^-1xa) as long as a in N_B^x(O). We apply this to (O/N)^x as a permutation group,0,3,0,0,0,0,0,0,0,148,,0,0,19,,0,0,18,,33,-38,-38,-38,-38,-38
 S,AutomorphismsModN,"Given a subset of Aut(O) input as a finite subset S of B^x, create the map theta : S -> Aut((O/N)^x)",1,0,1,83,0,AlgQuatProjElt,2,0,0,0,0,0,0,0,AlgQuatOrdRes,,0,0,83,,175,-38,-38,-38,-38,-38

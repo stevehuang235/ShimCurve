@@ -1,4 +1,4 @@
-177,0
+178,0
 S,ReplaceString,Greedily replace each occurrence of string c in s with the string d,0,3,0,0,0,0,0,0,0,298,,0,0,298,,0,0,298,,298,-38,-38,-38,-38,-38
 S,getLines,turn text file into lines,0,1,0,0,0,0,0,0,0,298,,-1,-38,-38,-38,-38,-38
 S,IsNumberField,Take the associative algebra over Q and make a number field,0,1,0,0,0,0,0,0,0,11,,36,27,-38,-38,-38,-38
