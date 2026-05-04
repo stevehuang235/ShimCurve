@@ -7,7 +7,7 @@ In analogy with the $H < \mathrm{GL}_2(\mathbb{Z}/N\mathbb{Z})$ for modular curv
 - $(O/N)^\times$ is just the units of the ring $O/N$.
 - $G = \mathrm{Aut}_{\pm \mu}(O) \ltimes (O/N)^\times$, with the semidirect product naturally defined.
 
-$G$ plays the role of $\mathrm{GL}_{2}(\mathbb{Z}/N\mathbb{Z})$. We have $(O/N)^{\times}$ is where the Galois representation lives if the surface has QM defined already and $\mathrm{Aut}_{\pm \mu}(O)$ is like refined Atkin-Lehner involutions. A **PQM surface** has its Galois representatin contained in $G$, this is called the enhanced representation, see section 3.5 of https://arxiv.org/abs/2308.15193 for more details.
+$G$ plays the role of $$\mathrm{GL}_{2}(\mathbb{Z}/N\mathbb{Z})$$. We have $$(O/N)^{\times}$$ is where the Galois representation lives if the surface has QM defined already and $$\mathrm{Aut}_{\pm \mu}(O)$$ is like refined Atkin-Lehner involutions. A **PQM surface** has its Galois representatin contained in $G$, this is called the enhanced representation, see section 3.5 of https://arxiv.org/abs/2308.15193 for more details.
 
 Make sure you are working one directory above this repository. To load the intrinsics do
 ```
