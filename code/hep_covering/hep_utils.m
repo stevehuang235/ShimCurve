@@ -120,7 +120,7 @@ AddAttribute(GrpPSL2, "HeptCoverCenters");
 AddAttribute(GrpPSL2, "LayeredHeptCover");
 
 intrinsic HeptagonalBoundaryCovering(Gamma::GrpPSL2, center::SpcHypElt) -> List
-{ Computes a covering of the bounar of a fundamental domain of 
+{ Computes a covering of the boundary of a fundamental domain of 
 the Fuchsian group Gamma by discs formed by the (2,3,7)-triangle group
 }
     D := UnitDisc(:Center:=center);
@@ -264,17 +264,20 @@ intrinsic HeptagonalCovering(Gamma::GrpPSL2, center::SpcHypElt) -> SeqEnum[RngIn
     zeropt := D!0;
     fd := FundamentalDomain(Gamma,D);
     fd_radius := Maximum({Distance(x, zeropt): x in fd});
-    //N := Ceiling(fd_radius/r_hept);
-    N := Floor(fd_radius/r_hept)-1;
-    print(N);
+    N := Ceiling(fd_radius/r_hept);
+    //N := Floor(fd_radius/r_hept)-1;
     Gamma`LayeredHeptCover := HeptTilingTable(N);
     centers := &cat Gamma`LayeredHeptCover;
+    euc_circles := [HyperbolicToEuclideanCircle(centers[i][3], r_hept) : i in [1..#centers]]; 
+    to_include := [false : i in [1..#centers]];
 
     O := BaseRing(Gamma);
     B := Algebra(O);
     gammagens := Gamma`ShimFDSidepairsDomain;
-    prunecenters := [centers[1]];
-    indices := [1];
+    //prunecenters := [centers[1]];
+    //indices := [1];
+    
+    /*
     for i := 2 to #centers do
         c := centers[i][3];
         euc_circle := HyperbolicToEuclideanCircle(c,r_hept);
@@ -286,6 +289,28 @@ intrinsic HeptagonalCovering(Gamma::GrpPSL2, center::SpcHypElt) -> SeqEnum[RngIn
             Append(~prunecenters,centers[i]);
         end if;
     end for;
+    */ 
+    prunecenters := [];
+    indices := [];
+    for i in [1..#centers] do 
+        if not to_include[i] then 
+            for j := 1 to #centers do 
+                if i ne j then 
+                    if Distance(D!centers[i][3], D!centers[j][3]) le 2 * r_hept then 
+                        int1, int2 := CirclesIntersections(euc_circles[i], euc_circles[j]);
+                        is_interior := exists{x : x in [int1, int2] | HistoricShimuraReduceUnit(O!1, gammagens, Gamma, D : z0 := x)[1][1] eq O!1};
+                        if is_interior then 
+                            to_include[i] := true; to_include[j] := true;
+                            Append(~indices, i); Append(~indices, j);
+                            Append(~prunecenters, centers[i]); Append(~prunecenters, centers[j]); 
+                            break;
+                        end if;
+                    end if;
+                end if;
+            end for;
+        end if;
+    end for;
+
     Gamma`HeptCoverCenters := prunecenters;
     return indices;
 end intrinsic;
@@ -421,7 +446,7 @@ intrinsic HyperbolicToEuclideanCircle(w::FldComElt,r::FldReElt) -> Tup
 end intrinsic;
 
 intrinsic HyperbolicToEuclideanCircle(ws::SeqEnum,r::FldReElt) -> SeqEnum
-    {returns the Euclidean center and Euclidean radius of the circles in 
+    {returns the Euclidean centers and Euclidean radii of the circles in 
     hyperbolic unit disc with hyperbolic center given by ws and fixed hyperbolic radius r.
     Uses Eq 33.7.5 from John Voight - Quaternion Algebras}
     return [HyperbolicToEuclideanCircle(w,r) : w in ws];
@@ -521,36 +546,7 @@ wrt the area of fundamental domain, and -d.}
     return a/A, -d;
 end intrinsic;
 
-PrintFDCovering := procedure(L, Gamma, D);
-// L: List of tuples <center, radius>
-    printf "\\begin{center}\n\\psset{unit=2.5in}\n\\begin{pspicture}(-1,-1)(1,1)\n\\pscircle[fillstyle=solid,fillcolor=lightgray](0,0){1}\n\n";
 
-    deltas := ChangeUniverse(Gamma`ShimFDSidepairsDomain,Gamma);
-    for delta in deltas do
-        c,r := IsometricCircle(delta,D);
-        re_c := (AbsoluteValue(Re(c)) lt 10^-10) select 0 else RealField(6)!Re(c);
-        im_c := (AbsoluteValue(Im(c)) lt 10^-10) select 0 else RealField(6)!Im(c);
-        printf "\\psclip{\\pscircle(0,0){1}} \\pscircle[fillstyle=solid,fillcolor=white](%o,%o){%o} \\endpsclip\n", 
-        re_c, im_c, Max(RealField(6)!r,0.001);
-    end for;
-
-    printf "\n";
-
-    for delta in deltas do
-        c,r := IsometricCircle(delta,D);
-        re_c := (AbsoluteValue(Re(c)) lt 10^-10) select 0 else RealField(6)!Re(c);
-        im_c := (AbsoluteValue(Im(c)) lt 10^-10) select 0 else RealField(6)!Im(c);
-        printf "\\psclip{\\pscircle(0,0){1}} \\pscircle(%o,%o){%o} \\endpsclip\n", 
-        re_c, im_c, Max(RealField(6)!r,0.001);
-    end for;
-
-    for ele in L do
-        printf "\\pscircle[](%o,%o){%o}\n", 
-        RealField(6)!Re(ele[1]), RealField(6)!Im(ele[1]), RealField(6)!ele[2];
-    end for;
-
-    printf "\\pscircle(0,0){1}\n\\end{pspicture}\n\\end{center}\n\n";
-end procedure;
 
 /*
 PrintDomain := procedure(deltas, D);
@@ -578,29 +574,4 @@ PrintDomain := procedure(deltas, D);
 end procedure;
 */
 
-HepCoveringPicture := procedure(O);
-    B := QuaternionAlgebra(O);
-    G := FuchsianGroup(B);
-    d := 5;
-    while true do
-        if IsFundamentalDiscriminant(-d) then
-            try
-                ZK := Integers(QuadraticField(-d));
-                nu := Embed(ZK,O);
-                break;
-            catch e;
-                d := d+1;
-            end try;
-        else
-            d := d+1;
-        end if;
-    end while;
-    z := FixedPoints(G!nu, UpperHalfPlane())[1];
-    DD := UnitDisc(:Center:=z);
-    fd := FundamentalDomain(G,DD);
-    _ := Group(G);
-    _ := HeptagonalCovering(G,z);
-    L1 := [x[3] : x in G`HeptCoverCenters];
-    L2 := HyperbolicToEuclideanCircle(L1,r_hept);
-    PrintFDCovering(L2,G,DD);
-end procedure;
+

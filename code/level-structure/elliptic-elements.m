@@ -67,13 +67,15 @@ end intrinsic;
 
 
 intrinsic SemidirectToNormalizerKernel(O::AlgQuatOrd,mu::AlgQuatOrdElt) -> SeqEnum 
-  {return the kernel of the map form the enhanced semidirect product to N_B^x(O). 
+  {return the kernel of the map from the enhanced semidirect product to N_B^x(O). 
   It is necessarily cyclic and the second value is the generator of the group}
   B:=QuaternionAlgebra(O);
   Ocirc:=EnhancedSemidirectProduct(O);
   AutFull, autmuOseq := Aut(O,mu);
-  Oxcyc:= [ (1/Integers()!Sqrt(Norm(a`element)))*a`element : a in autmuOseq | IsSquare(Norm(a`element)) ];
-  ker:=[ Ocirc!<x,x^-1> : x in Oxcyc ];
+  Oxcyc_cand:= [ (1/Integers()!Sqrt(Norm(a`element)))*a`element : a in autmuOseq | IsSquare(Norm(a`element)) ];
+  //ker:=[ Ocirc!<x,x^-1> : x in Oxcyc ];
+  Oxcyc := [x : x in Oxcyc_cand | x in O];
+  ker:=[ Ocirc!<x,x^-1> : x in Oxcyc];
   assert #ker in [1,2,3];
   assert Set([ Norm(e) eq 1 : e in Oxcyc ]) eq Set([true]);
   if #ker eq 1 then 
