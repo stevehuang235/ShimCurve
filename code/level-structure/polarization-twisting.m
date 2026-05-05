@@ -9,33 +9,12 @@ intrinsic HasPolarizedElementOfDegree(O::AlgQuatOrd,d::RngIntElt) -> BoolElt, Al
   Rx<x>:=PolynomialRing(Rationals());
   Em<v>:=NumberField(x^2+d*disc);
   if IsSplittingField(Em,QuaternionAlgebra(O)) then 
-/*    cyc,Czeta,zeta:=IsCyclotomic(Em);
-    if cyc eq true then      
-      Zzeta:=Integers(Czeta);
-      z:=Zzeta.2;
-      zO,emb:=Embed(Zzeta,O);
-      if CyclotomicOrder(Czeta) eq 4 then 
-        assert zO^4 eq 1;
-        tr,c:=IsSquare(Integers()!d*disc);
-        mu:=zO/c;
-        assert mu^2+d/disc eq 0;
-        assert d*mu in O;
-        return true, B!mu;
-      else 
-        assert zO^3 eq 1;
-        tr,c:=IsSquare(Integers()!d*disc/3);
-        mu:=(2*zO+1)*c;
-        assert mu^2+d*disc eq 0;
-        assert d*mu in O;
-        return true,B!mu;
-      end if;
-    else */
     Rm:=Order([1,v]);
     mu,emb:=Embed(Rm,O);
     assert mu^2+d*disc eq 0;
     return true, B!(mu);   
   else 
-    return false;
+    return false, _;
   end if;
 end intrinsic;
 

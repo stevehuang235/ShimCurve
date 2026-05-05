@@ -706,7 +706,7 @@ intrinsic EnumerateH(O::AlgQuatOrd,mu::AlgQuatElt,N::RngIntElt : minimal:=false,
     s`genus:=genus;
     s`order:=order;
     s`index:=index;
-    s`fixedsubspace:=PrimaryAbelianInvariants(fixedspace);
+    s`torsion:=PrimaryAbelianInvariants(fixedspace);
     s`endomorphism_representation:=GroupName(rho_end);
     s`AutmuO_norms:=aut_mu_norms;
     s`split:=is_split;
@@ -744,7 +744,7 @@ intrinsic EnumerateH(O::AlgQuatOrd,mu::AlgQuatElt,N::RngIntElt : minimal:=false,
       printf "Polarized Element \\mu=%o of degree %o and norm %o\n", mu, DegreeOfPolarizedElement(O,mu),Norm(mu);
       print "Genus ? (Fuchsian) Index ? #H ? Torsion ? Gal(L|Q) ? AutmuO norms ? Split semidirect ? Generators ? Ramification Data \n";
       for s in minimal_subs_init do 
-        printf "%o ? %o ? %o ? %o ? %o ? %o ? %o ? %o \n", s`genus, s`index, s`order, s`fixedsubspace, s`endomorphism_representation, s`AutmuO_norms, s`split, s`generators, sprint(s`ramification_data);
+        printf "%o ? %o ? %o ? %o ? %o ? %o ? %o ? %o \n", s`genus, s`index, s`order, s`torsion, s`endomorphism_representation, s`AutmuO_norms, s`split, s`generators, sprint(s`ramification_data);
       end for;
       if write eq true then 
         filename:=Sprintf("ShimCurve/data/genera-tables/genera-D%o-deg%o-N%o.m",D,del,N);

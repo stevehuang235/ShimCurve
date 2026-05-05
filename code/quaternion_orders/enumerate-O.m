@@ -196,16 +196,15 @@ intrinsic EnumerateOmu(boundO::RngIntElt: verbose:=true,write:=false) -> Any
       for deg in Divisors(D) do
         B:=QuaternionAlgebra(D);
         O:=MaximalOrder(B); 
-        if HasPolarizedElementOfDegree(O,deg) then 
-          tr,mu := HasPolarizedElementOfDegree(O,deg);
-          row:=LMFDBRowEntry(O,mu);
-          if verbose eq true then 
-            printf "%o\n",row;
-          end if;
-          if write eq true then 
-            filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders-polarized.m");
-            fprintf filename, "%o\n",row;   
-          end if;
+        tr,mu := HasPolarizedElementOfDegree(O,deg);
+        if not tr then continue; end if;
+        row:=LMFDBRowEntry(O,mu);
+        if verbose eq true then 
+          printf "%o\n",row;
+        end if;
+        if write eq true then 
+          filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders-polarized.m");
+          fprintf filename, "%o\n",row;   
         end if;
       end for;
     end if;
