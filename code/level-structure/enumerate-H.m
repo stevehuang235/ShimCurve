@@ -643,6 +643,7 @@ intrinsic EnumerateH(O::AlgQuatOrd,mu::AlgQuatElt,N::RngIntElt : minimal:=false,
   assert -G!1 in G;
   G1plus:=sub< G | NBOplusgensGL4 >;
   if profile then print "G1plus", Cputime() - t0; t0 := Cputime(); end if;
+  // This assertion fails for N = 5, D = 6. Do we understand why?
   assert #G/#G1plus eq 2;
   GO:= G meet sub< GL(4,ResidueClassRing(N)) | UnitGroup(O,N) >;
   if profile then print "GO", Cputime() - t0; t0 := Cputime(); end if;
