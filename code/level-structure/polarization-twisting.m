@@ -11,6 +11,38 @@ intrinsic HasPolarizedElementOfDegree(O::AlgQuatOrd,d::RngIntElt) -> BoolElt, Al
   if IsSplittingField(Em,QuaternionAlgebra(O)) then 
     Rm:=Order([1,v]);
     mu,emb:=Embed(Rm,O);
+    if not (&and[AbsoluteValue(x) le 2147483647 : x in Eltseq(O!mu)]) then 
+      num_try := 1;
+      mu, emb := Embed(Rm, O: Al:="Search");
+      while not (&and[AbsoluteValue(x) le 2147483647 : x in Eltseq(O!mu)]) and num_try le 10 do 
+        mu, emb := Embed(Rm, O: Al:="Search");
+        num_try +:=1; 
+      end while;
+      if &and[AbsoluteValue(x) le 2147483647 : x in Eltseq(O!mu)] then 
+        assert mu^2+d*disc eq 0;
+        return true, B!(mu);
+      else 
+        a, b, _, _ := StandardForm(B);
+        C := Conic([Em| 1, -a, -b]);
+        CA := AffinePatch(C, 1);
+        CA_Q, CA_Q_to_CA := RestrictionOfScalars(CA, Rationals());
+        bound := 100;
+        pts := PointSearch(CA_Q, bound);
+        while #pts eq 0 and bound le 10000 do 
+          bound *:= 10;
+          pts := PointSearch(CA_Q, bound);
+        end while;
+        if #pts eq 0 then return false, "unable to find mu by naive point search"; end if;
+        CA_Q_K := Domain(CA_Q_to_CA);
+        sol := C!(CA_Q_to_CA(CA_Q_K!Eltseq(pts[1])));
+        g := [Eltseq(sol[1]), Eltseq(sol[2])];
+        mu := B![g[1][1],g[2][1],1,0] / B![g[1][2],g[2][2],0,0];
+        bl, nu := InternalConjugatingElement(O, mu);
+        assert bl;
+        mu := O!(nu*mu*nu^(-1));
+      end if;
+    end if;
+
     assert mu^2+d*disc eq 0;
     return true, B!(mu);   
   else 
@@ -83,11 +115,14 @@ intrinsic IsTwisting(O::AlgQuatOrd,mu::AlgQuatElt) -> BoolElt
     if IsDivisibleBy(disc,soln[2]) then
       x,y:=Explode(Eltseq(soln[1]));
       chi:=x*skew_commute_basis[1] + y*skew_commute_basis[2];
-      assert IsDivisibleBy(disc,Norm(chi));
-      assert chi in O;
-      assert mu*chi eq -chi*mu;
-      assert forall(e){ b : b in Basis(O) | chi^-1*b*chi in O };
-      return true, [mu,chi];
+      //assert IsDivisibleBy(disc,Norm(chi));
+      //assert chi in O;
+      //assert mu*chi eq -chi*mu;
+      //assert forall(e){ b : b in Basis(O) | chi^-1*b*chi in O };
+      //return true, [mu,chi];
+      if IsDivisibleBy(disc,Norm(chi)) and (chi in O) and (mu*chi eq -chi*mu) and forall(e){ b : b in Basis(O) | chi^-1*b*chi in O } then 
+        return true, [mu,chi];
+      end if;
     end if;
   end for;
 
