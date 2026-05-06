@@ -232,7 +232,8 @@ function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4,
     sigma := RamificationData(G1plusmodKG, H1plusquo, Gmap, ells);
     genus := EnhancedGenus(sigma);
 
-    is_split := (order eq #(Hgp meet Image(Ahom)) * #(Hgp meet ONxinGL4));
+    size_aut_mu_O := #(Hgp meet Image(Ahom));
+    is_split := (order eq size_aut_mu_O * #(Hgp meet ONxinGL4));
     Henhgens := [GL4ToPair(Hgp.i, O, Ahom) : i in [1..Ngens(Hgp)]];
     aut_mu_norms := [Abs(SquarefreeFactorization(Integers()!Norm(AutFull(pair[1])`element))) : pair in Henhgens];
     
@@ -276,7 +277,8 @@ function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4,
     s`nu4 := nu[4];
     s`nu6 := nu[6];
 
-    area_term := s`aut_gerbiness * s`fuchsian_index * Area(O) / #;
+    // This is testing the genus formula from Gauss-Bonnet, see (39.4.2) in [JV]
+    area_term := s`aut_gerbiness * s`fuchsian_index * Area(O) / size_aut_mu_O;
     elliptic_term := 1/2 * &+[Rationals() | nu[e]*(1 - 1/e) : e in [2,3,4,6]];
     assert s`genus eq 1 + area_term - elliptic_term;
 
