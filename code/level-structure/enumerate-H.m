@@ -276,6 +276,10 @@ function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4,
     s`nu4 := nu[4];
     s`nu6 := nu[6];
 
+    area_term := s`aut_gerbiness * s`fuchsian_index * Area(O) / #;
+    elliptic_term := 1/2 * &+[Rationals() | nu[e]*(1 - 1/e) : e in [2,3,4,6]];
+    assert s`genus eq 1 + area_term - elliptic_term;
+
     return s;
 end function;
 
