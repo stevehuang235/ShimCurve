@@ -12,24 +12,41 @@ gens_denominators, integer[], a list of denominators, so that gensOnumerators[j]
 intrinsic LMFDBLabel(O::AlgQuatOrd) -> MonStgElt
   {Given a quaternion order O, generate its LMFDB label}
   
-  if IsMaximal(O) then 
-    B := QuaternionAlgebra(O);
-    D := Discriminant(B);
-    return Sprintf("%o",D);
-  else 
-    print "Only works for O maximal at the moment";
-  end if;
+  //if IsMaximal(O) then 
+  //  B := QuaternionAlgebra(O);
+  //  D := Discriminant(B);
+  //  return Sprintf("%o",D);
+  //else 
+  //  print "Only works for O maximal at the moment";
+  //end if;
+
+  B := QuaternionAlgebra(O);
+  D := Discriminant(B);
+  return Sprintf("%o.%o", D, Discriminant(O));
+
   
+end intrinsic;
+
+intrinsic DedekindPsi(N::RngIntElt) -> RngIntElt
+  {Dedekind psi function: N * prod_(p | N) (1 + 1/p)}
+  result := 1;
+  for fac in Factorization(N) do
+    p := fac[1]; e := fac[2];
+    result *:= p^(e-1) * (p+1);
+  end for;
+  return result;
 end intrinsic;
 
 
 intrinsic Area(O::AlgQuatOrd) -> FldRatElt
   {Compute the Area of X_O}
-  assert IsMaximal(O);
+  //assert IsMaximal(O);
+  discO := Discriminant(O);
 
   D:=Discriminant(QuaternionAlgebra(O));
+  M := Integers()!(discO/D);
   //area:=EulerPhi(D)/6;
-  area := EulerPhi(D)/12; // stores area/4pi
+  area := (EulerPhi(D)*DedekindPsi(M))/12; // stores area/4pi
   return area;
 end intrinsic;
 
@@ -39,9 +56,9 @@ intrinsic LMFDBRowEntry(O::AlgQuatOrd) -> MonStgElt
   The schema is (for O maximal):
   LMFDBLabel(O) ? a ? b ? disc(O) ? disc(B) ? coefficients of Basis(O) in terms of i,j,k scaled to be integral ? 1/b where b multiplied by the corresponding element in the previous column is the basis element}
 
-  if not(IsMaximal(O)) then 
-    return "Only works for O maximal at the moment";
-  end if;
+  //if not(IsMaximal(O)) then 
+  //  return "Only works for O maximal at the moment";
+  //end if;
 
   B:=QuaternionAlgebra(O);
   D:=Discriminant(B);
@@ -75,9 +92,9 @@ intrinsic LMFDBRowEntryTxt(O::AlgQuatOrd) -> MonStgElt
   The schema is (for O maximal):
   LMFDBLabel(O) ? a ? b ? disc(O) ? disc(B) ? coefficients of Basis(O) in terms of i,j,k scaled to be integral ? 1/b where b multiplied by the corresponding element in the previous column is the basis element}
 
-  if not(IsMaximal(O)) then 
-    return "Only works for O maximal at the moment";
-  end if;
+  //if not(IsMaximal(O)) then 
+  //  return "Only works for O maximal at the moment";
+  //end if;
 
   B:=QuaternionAlgebra(O);
   D:=Discriminant(B);
@@ -109,7 +126,7 @@ end intrinsic;
 
 
 intrinsic EnumerateO(bound::RngIntElt : verbose:=true,write:=false) -> Any
-  {loop over maximal orders of discriminant up to bound and output their lmfdb row entry}
+  {loop over Eichler orders of reduced discriminant up to bound and output their lmfdb row entry}
   
   if write eq true then 
     filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders.m");
@@ -119,45 +136,49 @@ intrinsic EnumerateO(bound::RngIntElt : verbose:=true,write:=false) -> Any
   end if;
 
   for D in [6..bound] do 
-    if IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then 
-      B:=QuaternionAlgebra(D);
-      O:=MaximalOrder(B);
-      row:=LMFDBRowEntry(O);
-      if verbose eq true then 
-        row;
+    for M in [1..Floor(bound/D)] do 
+      if (Gcd(D, M) eq 1) and (D*M lt bound) and IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then 
+        B:=QuaternionAlgebra(D);
+        O:= Order(MaximalOrder(B), M);
+        row:=LMFDBRowEntry(O);
+        if verbose eq true then 
+          row;
+        end if;
+        if write eq true then 
+          filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders.m");
+          fprintf filename, "%o\n",row;   
+        end if;
       end if;
-      if write eq true then 
-        filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders.m");
-        fprintf filename, "%o\n",row;   
-      end if;
-    end if;
+    end for;
   end for;
   return "";
 end intrinsic;
 
 intrinsic EnumerateOTxt(bound::RngIntElt : verbose:=true,write:=false) -> Any
-  {loop over maximal orders of discriminant up to bound and output their lmfdb row entry}
-  
-  if write eq true then 
+  {loop over Eichler orders of reduced discriminant up to bound and output their lmfdb row entry}
+
+  if write eq true then
     filename:=Sprintf("./data/quaternion-orders/quaternion-orders.txt");
     fprintf filename, "label | i_square | j_square | discO | discB | gens_numerators | gens_denominators | area_numerator | area_denominator \n";
     fprintf filename, "text | integer | integer | integer | integer | integer[] | integer[] | integer | integer\n";
     fprintf filename, "\n";
   end if;
 
-  for D in [6..bound] do 
-    if IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then 
-      B:=QuaternionAlgebra(D);
-      O:=MaximalOrder(B);
-      row:=LMFDBRowEntryTxt(O);
-      if verbose eq true then 
-        row;
+  for D in [6..bound] do
+    for M in [1..Floor(bound/D)] do
+      if (Gcd(D, M) eq 1) and (D*M lt bound) and IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then
+        B:=QuaternionAlgebra(D);
+        O:= Order(MaximalOrder(B), M);
+        row:=LMFDBRowEntryTxt(O);
+        if verbose eq true then
+          row;
+        end if;
+        if write eq true then
+          filename:=Sprintf("./data/quaternion-orders/quaternion-orders.txt");
+          fprintf filename, "%o\n",row;
+        end if;
       end if;
-      if write eq true then 
-        filename:=Sprintf("./data/quaternion-orders/quaternion-orders.txt");
-        fprintf filename, "%o\n",row;   
-      end if;
-    end if;
+    end for;
   end for;
   return "";
 end intrinsic;
@@ -169,14 +190,20 @@ intrinsic LMFDBLabel(O::AlgQuatOrd,mu::AlgQuatElt) -> MonStgElt
   {Given a quaternion order O, generate its LMFDB label}
   
   
-  if IsMaximal(O) then 
-    B := QuaternionAlgebra(O);
-    D := Discriminant(B);
-    del:=DegreeOfPolarizedElement(O,mu);
-    return Sprintf("%o.%o",D,del);
-  else 
-    print "Only works for O maximal at the moment";
-  end if;
+  //if IsMaximal(O) then 
+  //  B := QuaternionAlgebra(O);
+  //  D := Discriminant(B);
+  //  del:=DegreeOfPolarizedElement(O,mu);
+  //  return Sprintf("%o.%o",D,del);
+  //else 
+  //  print "Only works for O maximal at the moment";
+  //end if;
+
+  B := QuaternionAlgebra(O);
+  D := Discriminant(B);
+  d := Discriminant(O);
+  del:=DegreeOfPolarizedElement(O,mu);
+  return Sprintf("%o.%o.%o",D,d,del);
   
 end intrinsic;
 
@@ -201,6 +228,7 @@ intrinsic LMFDBRowEntry(O::AlgQuatOrd, mu::AlgQuatElt) -> MonStgElt
   B:=QuaternionAlgebra(O);
   D:=Discriminant(B);
   d:= Discriminant(O);
+  assert mu in O;
 
   label:=LMFDBLabel(O,mu);
   labelO:=LMFDBLabel(O);
@@ -249,10 +277,10 @@ end intrinsic;
   
 
 intrinsic EnumerateOmu(boundO::RngIntElt: verbose:=true,write:=false) -> Any
-  {loop over polarized maximal orders (O,mu) of discriminant up to boundO 
-  and polarization up to boundmu and output their lmfdb row entry}
-  
-  if write eq true then 
+  {loop over polarized Eichler orders (O,mu) of discriminant up to boundO
+  and output their lmfdb row entry}
+
+  if write eq true then
     filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders-polarized.m");
     fprintf filename, "label ? order_label ? mu ? deg_mu ? nrd_mu ? AutmuO_size ? AutmuO_label ? AutmuO_is_cyclic ? AutmuO_generators ? Gerby_gen \n";
     fprintf filename, "text ? text ? integer[] ? integer ? integer ? integer ? text ? boolean ? integer[] ? integer[]\n";
@@ -260,59 +288,63 @@ intrinsic EnumerateOmu(boundO::RngIntElt: verbose:=true,write:=false) -> Any
   end if;
 
   for D in [6..boundO] do
-    if IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then
-      for deg in Divisors(D) do
+    for M in [1..Floor(boundO/D)] do
+      if (Gcd(D, M) eq 1) and (D*M lt boundO) and IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then
         B:=QuaternionAlgebra(D);
-        O:=MaximalOrder(B); 
-        tr,mu := HasPolarizedElementOfDegree(O,deg);
-        if not tr then continue; end if;
-        row:=LMFDBRowEntry(O,mu);
-        if verbose eq true then 
-          printf "%o\n",row;
-        end if;
-        if write eq true then 
-          filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders-polarized.m");
-          fprintf filename, "%o\n",row;   
-        end if;
-      end for;
-    end if;
+        O:= Order(MaximalOrder(B), M);
+        for deg in Divisors(D*M) do // want mu to be in N_(B^x)(O)
+          tr,mu := HasPolarizedElementOfDegree(O,deg);
+          if not tr then continue; end if;
+          row:=LMFDBRowEntry(O,mu);
+          if verbose eq true then
+            printf "%o\n",row;
+          end if;
+          if write eq true then
+            filename:=Sprintf("ShimCurve/data/quaternion-orders/quaternion-orders-polarized.m");
+            fprintf filename, "%o\n",row;
+          end if;
+        end for;
+      end if;
+    end for;
   end for;
 
   return "";
 end intrinsic;
 
+
 intrinsic EnumerateOmuTxt(boundO::RngIntElt: verbose:=true,write:=false) -> Any
-  {loop over polarized maximal orders (O,mu) of discriminant up to boundO 
-  and polarization up to boundmu and output their lmfdb row entry}
-  
-  if write eq true then 
-    filename:=Sprintf("./data/quaternion-orders/quaternion-orders-polarized.txt");
+  {loop over polarized Eichler orders (O,mu) of discriminant up to boundO
+  and output their lmfdb row entry}
+
+  if write eq true then
+    filename:=Sprintf("./data/quaternion-orders/quaternion-Eichler-orders-polarized.txt");
+    f := Open(filename, "w"); delete f;
     fprintf filename, "label | order_label | mu | deg_mu | nrd_mu | AutmuO_size | AutmuO_label | AutmuO_is_cyclic | AutmuO_generators | Gerby_gen \n";
     fprintf filename, "text | text | integer[] | integer | integer | integer | text | boolean | integer[] | integer[]\n";
     fprintf filename, "\n";
   end if;
 
   for D in [6..boundO] do
-    if IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then
-      for deg in Divisors(D) do
+    for M in [2..Floor(boundO/D)] do
+      if IsSquarefree(M) and (Gcd(D, M) eq 1) and (D*M lt boundO) and IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then
         B:=QuaternionAlgebra(D);
-        O:=MaximalOrder(B); 
-        if HasPolarizedElementOfDegree(O,deg) then 
+        O:= Order(MaximalOrder(B), M);
+        deg_pol := IsMaximal(O) select D*M else 1;
+        for deg in Divisors(deg_pol) do
+          print(<D, M, deg>);
           tr,mu := HasPolarizedElementOfDegree(O,deg);
-          if verbose eq true then 
-            print(<D,deg>);
-          end if;
+          if not tr then continue; end if;
           row:=LMFDBRowEntry(O,mu);
-          if verbose eq true then 
+          if verbose eq true then
             printf "%o\n",row;
           end if;
-          if write eq true then 
+          if write eq true then
             filename:=Sprintf("./data/quaternion-orders/quaternion-orders-polarized.txt");
-            fprintf filename, "%o\n",row;   
+            fprintf filename, "%o\n",row;
           end if;
-        end if;
-      end for;
-    end if;
+        end for;
+      end if;
+    end for;
   end for;
 
   return "";

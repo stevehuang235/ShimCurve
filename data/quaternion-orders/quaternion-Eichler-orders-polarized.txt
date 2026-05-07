@@ -1,0 +1,3 @@
+label | order_label | mu | deg_mu | nrd_mu | AutmuO_size | AutmuO_label | AutmuO_is_cyclic | AutmuO_generators | Gerby_gen 
+text | text | integer[] | integer | integer | integer | text | boolean | integer[] | integer[]
+
