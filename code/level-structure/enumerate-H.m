@@ -243,7 +243,8 @@ function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4,
     s`index:=Order(G) div order;
     s`coarse_index := s`index;
     s`fuchsian_index:=fuchsian_index;
-    s`gerbiness:=#KG;
+    KG_level := (N eq level) select KG else (KG / (KG meet getKernelOfReduction(OmodN, N div level, G meet ONxinGL4)));
+    s`gerbiness:= #KG_level;
     s`aut_gerbiness:=#{GL4ToPair(x, O, Ahom)[1] : x in KG};
     s`torsion:=PrimaryAbelianInvariants(fixedspace);
     s`Glabel:= N eq level select GroupLabel(Hgp) else 
