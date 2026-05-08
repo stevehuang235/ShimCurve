@@ -207,7 +207,7 @@ intrinsic X0DNdata(DBound::RngIntElt, NBound::RngIntElt : verbose:=true) -> Any
             if N eq 1 then
                 order_label:=Sprintf("%o",D);
             else
-                order_label:=Sprintf("%o.%o",D,N);
+                order_label:=Sprintf("%o.%o",D,D*N);
             end if;
             mu_label:=order_label cat ".1";
             label:=mu_label cat "." cat coarse_label;

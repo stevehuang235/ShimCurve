@@ -256,6 +256,8 @@ intrinsic LMFDBRowEntry(O::AlgQuatOrd, mu::AlgQuatElt) -> MonStgElt
   AutmuO_label := GroupName(Domain(AutmuO));
 
   // gerbiness = 1 because f: Aut_{±mu}(O) --> N_{B^x}(O)/Q^x is injective
+  // this is only correct when the degree of polarization is 1! 
+  // TODO: handle this more generally
   Kgen := [Eltseq(O!1)];
   Kgen_str := [ Sprintf("%o",lst) : lst in Kgen ];
   Kgen_str := Sprint(Kgen_str);
