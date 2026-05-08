@@ -77,10 +77,15 @@ intrinsic HasPolarizedElementOfDegree(O::AlgQuatOrd,d::RngIntElt) -> BoolElt, Al
   N := disc div D;
   Rx<x>:=PolynomialRing(Rationals());
   Em<v>:=NumberField(x^2+d*disc);
+  Rm:=Order([1,v]);
   if IsSplittingField(Em,QuaternionAlgebra(O)) then 
-    Rm:=Order([1,v]);
-    if N eq 1 then  
-      mu,emb:=Embed(Rm,O);
+    //Rm:=Order([1,v]);
+    //if N eq 1 then  
+    //mu,emb:=Embed(Rm,O);
+    mu, _ := Embed(Em, B);
+    _, nu := InternalConjugatingElement(O, mu);
+    mu := O!(nu*mu*nu^(-1));
+    /*
     else  
       Ldata := ShimuraCurveLattice(D,N,O);
       Q := Ldata`Q;
@@ -105,6 +110,7 @@ intrinsic HasPolarizedElementOfDegree(O::AlgQuatOrd,d::RngIntElt) -> BoolElt, Al
         end for;
       end while;
     end if;
+    */
     if not (&and[AbsoluteValue(x) le 2147483647 : x in Eltseq(O!mu)]) then 
       num_try := 1;
       mu, emb := Embed(Rm, O: Al:="Search");
