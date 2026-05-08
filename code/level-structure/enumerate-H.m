@@ -58,13 +58,23 @@ end intrinsic;
 intrinsic EnumerateGerbiestSurjectiveH(OmodN::AlgQuatOrdRes, AutFull::Map, G::GrpMat, ONx::GrpMat, Ahom::HomGrp, KG::GrpMat) -> SeqEnum[Rec], SeqEnum, SeqEnum[Rec], SeqEnum
 {return all of the enhanced subgroups which contain the entire kernel (maximal size of gerbe, hence gerbisest), and having surjective reduced norm, in a list with each one being a record (rethink it).}
 
-  subs:=Subgroups(G);
+  assert IsNormal(G, KG);
+  subs:=Subgroups(G, KG);
   O := OmodN`quaternionorder;
   N := Modulus(BaseRing(G));
-  surjH := [H : H in subs | #getDeterminantImage(H`subgroup, O, Ahom) eq EulerPhi(N)];
-  surj_gerby_H := [H : H in surjH | KG subset H`subgroup];
-  
-  O1_subs := [H : H in subs | #getDeterminantImage(H`subgroup, O, Ahom) eq 1];
+  euler_phi_N := EulerPhi(N);
+
+  surj_gerby_H := [];
+  O1_subs := [];
+  for H in subs do
+      d := #getDeterminantImage(H`subgroup, O, Ahom);
+      if d eq 1 then
+	      Append(~O1_subs, H);
+      end if;
+      if d eq euler_phi_N then
+	      Append(~surj_gerby_H, H);
+      end if;
+  end for;
 
   ker_reds := getAllReductionKernels(OmodN, G meet ONx);
   
@@ -78,7 +88,7 @@ intrinsic EnumerateGerbiestSurjectiveH(OmodN::AlgQuatOrdRes, AutFull::Map, G::Gr
   
   prime_kernels_in_H_O1 := [[] : H in O1_subs];
   
-  // !!!! TODO !!! Might be more efficient to get all subgroups containing a kernel of reduction every time
+  // subs = Subgroups(G, KG): O1_subs lists det-trivial subgroups among those containing KG only.
   for p in Keys(ker_reds) do
       for i->H in surj_gerby_H do
 	  if ker_reds[p] subset H`subgroup then
@@ -205,6 +215,9 @@ GP_SHIM_RF := recformat< level : Integers(),
 			 psl2label,
 			 scalar_label
 		       >;	  
+
+// Minimal record shape for createRecord (needs subgroup + order only).
+SUBMEET_RF := recformat<subgroup : GrpMat, order : Integers()>;
 			  
 function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4, 
 		      Ahom, AutFull, O, N, OmodN, G, mu, level)
@@ -230,7 +243,8 @@ function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4,
     s`index:=Order(G) div order;
     s`coarse_index := s`index;
     s`fuchsian_index:=fuchsian_index;
-    s`gerbiness:=#KG;
+    KG_level := (N eq level) select KG else (KG / (KG meet getKernelOfReduction(OmodN, N div level, G meet ONxinGL4)));
+    s`gerbiness:= #KG_level;
     s`aut_gerbiness:=#{GL4ToPair(x, O, Ahom)[1] : x in KG};
     s`torsion:=PrimaryAbelianInvariants(fixedspace);
     s`Glabel:= N eq level select GroupLabel(Hgp) else 
@@ -262,6 +276,11 @@ function createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4,
     s`nu3 := nu[3];
     s`nu4 := nu[4];
     s`nu6 := nu[6];
+
+    // This is testing the genus formula from Gauss-Bonnet, see (39.4.2) in [JV]
+    area_term := s`aut_gerbiness * s`fuchsian_index * Area(O) / #Domain(AutFull);
+    elliptic_term := 1/2 * &+[Rationals() | nu[e]*(1 - 1/e) : e in [2,3,4,6]];
+    assert s`genus eq 1 + area_term - elliptic_term;
 
     return s;
 end function;
@@ -340,14 +359,26 @@ intrinsic GenerateDataForGerbiestSurjectiveH(O::AlgQuatOrd,mu::AlgQuatElt,N::Rng
    updateLabels(~ret_subs, G);
 
    G1 := O1_subs[#O1_subs]`subgroup;
+   // Only coarse intersections H meet G1 occur in psl2label matching; build one record per
+   // G-conjugacy class of such intersections (instead of every det-trivial subgroup of G).
+   meet_subgroups := [ H`subgroup meet G1 : H in subs ];
+   meet_class_reps := [];
+   for M in meet_subgroups do
+       if not exists(R){ R : R in meet_class_reps | IsConjugate(G, M, R) } then
+	   Append(~meet_class_reps, M);
+       end if;
+   end for;
+   O1_needed := [ rec<SUBMEET_RF | subgroup := R, order := #R> : R in meet_class_reps ];
+   vprintf ShimuraCurves, 1 : "#O1 PSL2 reps (meet classes) %o (filtered O1_subs %o)\n",
+			      #O1_needed, #O1_subs;
+
    ret_O1_subs := [createRecord(H, G1plus, KG, G1plusmodKG, Gmap, ells, ONxinGL4, 
-				Ahom, AutFull, O, N, OmodN, G1, mu, level) : H in O1_subs];
+				Ahom, AutFull, O, N, OmodN, G1, mu, level) : H in O1_needed];
    
    updateLabels(~ret_O1_subs, G);
    
    for idx->H in ret_subs do
        H1 := H`subgroup meet G1;
-       // !! TODO !! There should be a better way to do it - problem we need to check for conjugation
        assert exists(H_O1){H_O1 : H_O1 in ret_O1_subs | IsConjugate(G, H1, H_O1`subgroup)};
        ret_subs[idx]`psl2label := H_O1`label;
        scalar_index := Index(H`subgroup, H1);
@@ -391,9 +422,10 @@ from lmfdb import db
 sage: for k in sorted(db.gps_shimura_test.col_type.keys()):
      print('<"%s","%s">,'%(k,db.gps_shimura_test.col_type[k]))
         
-but note that we want to leave out id
+but note that we leave out id and put label first (for update_from_file)
 */
 GPS_SHIMURA_FIELDS := [
+<"label","text">,
 <"Glabel","text">,
 <"all_degree1_points_known","boolean">,
 <"aut_gerbiness","integer">,
@@ -423,7 +455,6 @@ GPS_SHIMURA_FIELDS := [
 <"index","integer">,
 <"is_coarse","boolean">,
 <"is_split","boolean">,
-<"label","text">,
 <"lattice_labels","text[]">,
 <"lattice_x","integer[]">,
 <"level","integer">,

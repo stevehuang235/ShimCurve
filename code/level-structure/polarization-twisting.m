@@ -80,13 +80,13 @@ intrinsic HasPolarizedElementOfDegree(O::AlgQuatOrd,d::RngIntElt) -> BoolElt, Al
   Rm:=Order([1,v]);
   if IsSplittingField(Em,QuaternionAlgebra(O)) then 
     //Rm:=Order([1,v]);
-    //if N eq 1 then  
+    //if N eq 1 then
     //mu,emb:=Embed(Rm,O);
     mu, _ := Embed(Em, B);
     _, nu := InternalConjugatingElement(O, mu);
     mu := O!(nu*mu*nu^(-1));
     /*
-    else  
+    else
       Ldata := ShimuraCurveLattice(D,N,O);
       Q := Ldata`Q;
       basis_L := Ldata`basis_L;
@@ -95,7 +95,7 @@ intrinsic HasPolarizedElementOfDegree(O::AlgQuatOrd,d::RngIntElt) -> BoolElt, Al
       g := f - d*disc;
       mu := B!1;
       bound := 10;
-      while not found_point and bound le 100000 do 
+      while not found_point and bound le 100000 do
         bound *:= 10;
         for x in [-bound..bound] do
             for y in [-bound..bound] do

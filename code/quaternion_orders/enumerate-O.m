@@ -85,7 +85,7 @@ intrinsic LMFDBRowEntryTxt(O::AlgQuatOrd) -> MonStgElt
   The schema is (for O maximal):
   LMFDBLabel(O) ? a ? b ? disc(O) ? disc(B) ? coefficients of Basis(O) in terms of i,j,k scaled to be integral ? 1/b where b multiplied by the corresponding element in the previous column is the basis element}
 
-  //if not(IsMaximal(O)) then 
+  //if not(IsMaximal(O)) then
   //  return "Only works for O maximal at the moment";
   //end if;
 
@@ -176,6 +176,33 @@ intrinsic EnumerateOTxt(bound::RngIntElt : verbose:=true,write:=false) -> Any
   return "";
 end intrinsic;
 
+intrinsic EnumerateOTxt(bound::RngIntElt : verbose:=true,write:=false) -> Any
+  {loop over maximal orders of discriminant up to bound and output their lmfdb row entry}
+  
+  if write eq true then 
+    filename:=Sprintf("./data/quaternion-orders/quaternion-orders.txt");
+    fprintf filename, "label | i_square | j_square | discO | discB | gens_numerators | gens_denominators | area_numerator | area_denominator \n";
+    fprintf filename, "text | integer | integer | integer | integer | integer[] | integer[] | integer | integer\n";
+    fprintf filename, "\n";
+  end if;
+
+  for D in [6..bound] do 
+    if IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then 
+      B:=QuaternionAlgebra(D);
+      O:=MaximalOrder(B);
+      row:=LMFDBRowEntryTxt(O);
+      if verbose eq true then 
+        row;
+      end if;
+      if write eq true then 
+        filename:=Sprintf("./data/quaternion-orders/quaternion-orders.txt");
+        fprintf filename, "%o\n",row;   
+      end if;
+    end if;
+  end for;
+  return "";
+end intrinsic;
+
 
 
 
@@ -228,9 +255,7 @@ intrinsic LMFDBRowEntry(O::AlgQuatOrd, mu::AlgQuatElt) -> MonStgElt
   AutmuO := Aut(O,mu);
   AutmuO_label := GroupName(Domain(AutmuO));
 
-  // Beware: when N = 1 (trivial level), K should always be trivial 
-  //K,Kgen:=SemidirectToNormalizerKernel(O,mu);
-  //Kgen := [ Eltseq(O!((Kgen`element)[1]`element)), Eltseq(O!(Kgen`element[2])) ];
+  // gerbiness = 1 because f: Aut_{±mu}(O) --> N_{B^x}(O)/Q^x is injective
   Kgen := [Eltseq(O!1)];
   Kgen_str := [ Sprintf("%o",lst) : lst in Kgen ];
   Kgen_str := Sprint(Kgen_str);
@@ -402,6 +427,43 @@ intrinsic EnumerateOmuTxt(boundO::RngIntElt: verbose:=true,write:=false) -> Any
         end for;
       end if;
     end for;
+  end for;
+
+  return "";
+end intrinsic;
+
+intrinsic EnumerateOmuTxt(boundO::RngIntElt: verbose:=true,write:=false) -> Any
+  {loop over polarized maximal orders (O,mu) of discriminant up to boundO 
+  and polarization up to boundmu and output their lmfdb row entry}
+  
+  if write eq true then 
+    filename:=Sprintf("./data/quaternion-orders/quaternion-orders-polarized.txt");
+    fprintf filename, "label | order_label | mu | deg_mu | nrd_mu | AutmuO_size | AutmuO_label | AutmuO_is_cyclic | AutmuO_generators | Gerby_gen \n";
+    fprintf filename, "text | text | integer[] | integer | integer | integer | text | boolean | integer[] | integer[]\n";
+    fprintf filename, "\n";
+  end if;
+
+  for D in [6..boundO] do
+    if IsSquarefree(D) and IsEven(#PrimeDivisors(D)) then
+      for deg in Divisors(D) do
+        B:=QuaternionAlgebra(D);
+        O:=MaximalOrder(B); 
+        if HasPolarizedElementOfDegree(O,deg) then 
+          tr,mu := HasPolarizedElementOfDegree(O,deg);
+          if verbose eq true then 
+            print(<D,deg>);
+          end if;
+          row:=LMFDBRowEntry(O,mu);
+          if verbose eq true then 
+            printf "%o\n",row;
+          end if;
+          if write eq true then 
+            filename:=Sprintf("./data/quaternion-orders/quaternion-orders-polarized.txt");
+            fprintf filename, "%o\n",row;   
+          end if;
+        end if;
+      end for;
+    end if;
   end for;
 
   return "";
